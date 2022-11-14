@@ -1,5 +1,17 @@
 class LabeledDiGraph(DiGraph):
+	"""
+	A LabeledDiGraph is an extension of a standard DiGraph which assumes that all edges have some accompanying label.
+	Multiple methods which are undefined or not specified for graphs with labels are implemented here.
+	
+	Initialization can be done with any of the data formats used for a standard DiGraph.
+	Label existence is not checked during initialization to reduce overhead and permit piecewise construction of graphs.
+	"""
 	def is_regular(self):
+		"""
+		Check whether the graph is regular with respect to its labels.
+		
+		A labeled digraph is regular if and only if every vertex has the same in-degree and out-degree for each label.
+		"""
 		edges_in, edges_out = set(), set()
 		for o, t, l in self.edge_iterator(labels=True):
 			if (t, l) in edges_in:
@@ -14,44 +26,82 @@ class LabeledDiGraph(DiGraph):
 					
 		return True
 		
-	def label_subgraph(self, label, vertices=None, edges=None, inplace=False, vertex_property=None, algorithm=None, immutable=None):
-		return self.subgraph(vertices=vertices, edges=edges, inplace=inplace, vertex_property=vertex_property, edge_property=lambda e: e[2] == label,
+	def label_subgraph(self, label, vertices=None, edges=None, inplace=False, vertex_property=None, edge_property=None, algorithm=None, immutable=None):
+		"""
+		Return a subgraph of the graph where all edges have a specified label.
+		
+		Any of the usual arguments can be passed and will be respected, including additional edge properties.
+		"""
+		return self.subgraph(vertices=vertices, edges=edges, inplace=inplace, vertex_property=vertex_property,
+							 edge_property=lambda e: e[2] == label and edge_property(e),
 							 algorithm=algorithm, immutable=immutable)
 		
 	def labeled_incoming_edge_iterator(self, vertex, label):
+		"""
+		Return an iterator over all arriving edges from a vertex with a specified label.
+		"""
 		for edge in self.incoming_edge_iterator(vertex, labels=True):
 			if edge[2] == label:
 				yield edge
 				
 	def labeled_incoming_edges(self, vertex, label):
+		"""
+		Return a list of all arriving edges from a vertex with a specified label.
+		"""
 		return list(self.labeled_incoming_edge_iterator(vertex, label))
 				
 	def labeled_outgoing_edge_iterator(self, vertex, label):
+		"""
+		Return an iterator over all departing edges from a vertex with a specified label.
+		"""
 		for edge in self.outgoing_edge_iterator(vertex, labels=True):
 			if edge[2] == label:
 				yield edge
 				
 	def labeled_outgoing_edges(self, vertex, label):
+		"""
+		Return a list of all departing edges from a vertex with a specified label.
+		"""
 		return list(self.labeled_outgoing_edge_iterator(vertex, label))
 		
 	def labels_of(self, edges):
+		"""
+		Return a set of labels from a collection of edges, provided as three-tuples of origin, terminus, and label.
+		"""
 		return set([*zip(*edges)][2])
 		
 	def neighbor_in_by_label_iterator(self, vertex, label):
+		"""
+		Return an iterator over the in-neighbors of a vertex with a specified label.
+		"""
 		for edge in self.labeled_incoming_edge_iterator(vertex, label):
 			yield edge[0]
 			
 	def neighbor_out_by_label_iterator(self, vertex, label):
-		for edge in sefl.labeled_outgoing_edge_iterator(vertex, label):
+		"""
+		Return an iterator over the out-neighbors of a vertex with a specified label.
+		"""
+		for edge in self.labeled_outgoing_edge_iterator(vertex, label):
 			yield edge[1]
 			
 	def neighbors_in_by_label(self, vertex, label):
+		"""
+		Return a list of the in-neighbors of a vertex with a specified label.
+		"""
 		return list(self.neighbor_in_by_label_iterator(vertex, label))
 		
 	def neighbors_out_by_label(self, vertex, label):
+		"""
+		Return a list of the out-neighbors of a vertex with a specified label.
+		"""
 		return list(self.neighbor_out_by_label_iterator(vertex, label))	
 		
 	def path_from_edges(self, edges):
+		"""
+		Return a list of labels given a sequence of edges.
+		
+		The edges must define a path through the graph, in that each edge's terminus is the next edge's origin.
+		"""
 		path = []
 		while edges[1:]:
 			if edges[0][1] != edges[1][0]:
@@ -63,6 +113,11 @@ class LabeledDiGraph(DiGraph):
 		return path + [edges[-1][2]]
 		
 	def path_from_vertices(self, vertices):
+		"""
+		Return a list of labels given a sequence of vertices.
+		
+		The vertices must define a path through the graph, in that each vertex has an oriented edge connecting it to the next vertex.
+		"""
 		path = []
 		while vertices[1:]:
 			try:
@@ -76,6 +131,11 @@ class LabeledDiGraph(DiGraph):
 		return path
 		
 	def spanning_paths(self, start):
+		"""
+		Return a dictionary of paths connecting a given starting vertex to any other.
+		
+		Each entry is index by the terminal vertex, with paths stored as lists of labels.
+		"""
 		paths = {start: []}
 		tree = self.spanning_tree(start)
 	
@@ -85,6 +145,9 @@ class LabeledDiGraph(DiGraph):
 		return path
 		
 	def spanning_tree(self, start):
+		"""
+		Return a spanning tree of the graph from a given start node as a list of edges
+		"""
 		seen = {start}
 		stack = [start]
 		tree = []
@@ -99,6 +162,12 @@ class LabeledDiGraph(DiGraph):
 		return tree
 		
 	def tensor_product(self, other):
+		"""
+		Return the labeled tensor product of the graph with another labeled digraph
+		
+		The tensor product of two labeled digraphs is a graph with vertex set equal to the Cartesian product of the component vertex sets.
+		An edge connecting (u, w) and (v, x) exists in the product graph if and only if u ~ w and v ~ x via edges with the same label.
+		"""
 		G = LabeledDiGraph(loops=(self.allows_loops() or other.allows_loops()), multiedges=(self.allows_multiple_edges() or other.allows_multiple_edges()))
 		for u, w, l in self.edge_iterator(labels=True):
 			for v, x, m in other.edge_iterator(labels=True):
@@ -111,18 +180,38 @@ class LabeledDiGraph(DiGraph):
 	kronecker_product = tensor_product
 				
 	def walk(self, path, start):
+		"""
+		Return a list of vertices given a path in the graph and a starting vertex
+		
+		The path must be traversal from the given starting vertex.
+		If the graph is not regular, the choice of outgoing edge is arbitrary.
+		"""
 		seq = [start]
 		while path:
-			for edge in self.outgoing_edge_iterator(start, labels=True):
-				if edge[2] == path.pop(0):
-					seq.append(edge[1])
-					start = edge[1]
-					break
-					
+			label = path.pop(0)
+			
+			try:
+				start = next(self.labeled_outgoing_edge_iterator(start, label))
+				seq.append(start)
+				
+			except StopIteration:
+				raise ValueError(f"There is no outgoing edge labeled {label} from vertex {start}") from None
+				
 		return seq
 		
-	def is_walk(self, path, start, end):
-		return self.walk(path, start)[-1] == end
+	def is_walk(self, path, start, end, simple=False):
+		"""
+		Check if a given path connects the starting and ending vertices
 		
-	def is_cycle(self, path, start):
-		return self.is_walk(path, start, start)
+		If the walk is simple, the ending vertex is not visited before the walk is complete.
+		"""
+		walk = self.walk(path, start)
+		return walk[-1] == end and (end not in walk[1:-1] or not simple)
+		
+	def is_cycle(self, path, start, simple=False):
+		"""
+		Check if a given path connects a vertex to itself
+		
+		If the cycle is simple, the starting vertex is visited only at the start and end of the cycle. 
+		"""
+		return self.is_walk(path, start, start, simple)
