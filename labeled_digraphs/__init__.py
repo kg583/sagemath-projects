@@ -1,3 +1,6 @@
+from sage.graphs.digraph import DiGraph
+
+
 class LabeledDiGraph(DiGraph):
 	"""
 	A LabeledDiGraph is an extension of a standard DiGraph which assumes that all edges have some accompanying label.
