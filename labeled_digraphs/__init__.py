@@ -132,6 +132,29 @@ class LabeledDiGraph(DiGraph):
 			vertices.pop(0)
 			
 		return path
+	
+	def permutation_group(self):
+		"""
+		Compute the permutation group corresponding to the graph interpreted as a Cayley graph with labels as generators
+		
+		The graph must be regular of degree one to be a Cayley graph.
+		"""
+		S = SymmetricGroup(self.vertices())
+		labels = self.edge_labels()
+		images = {label: {vertex: None for vertex n self.vertices()} for label in labels}
+		
+		for label in labels:
+			for vertex in self:
+				neighbors_out = self.neighbors_out_by_label(vertex, label)
+				if len(neighbors_out) != 1:
+					raise ValueError("Graph is not regular of degree one and thus is not a Cayley graph") from None
+					
+				images[label][vertex] = neighbors_out[0]
+				
+		try:
+			return PermutationGroup(*[S(images[label].values()) for label in images])
+		except ValueError:
+			raise ValueError("Graph is not a Cayley graph") from None
 		
 	def spanning_paths(self, start):
 		"""
@@ -140,16 +163,14 @@ class LabeledDiGraph(DiGraph):
 		Each entry is index by the terminal vertex, with paths stored as lists of labels.
 		"""
 		paths = {start: []}
-		tree = self.spanning_tree(start)
-	
-		for edge in tree:
+		for edge in self.spanning_tree(start):
 			paths[edge[1]] = paths[edge[0]] + [edge[2]]
 			
 		return path
 		
 	def spanning_tree(self, start):
 		"""
-		Return a spanning tree of the graph from a given start node as a list of edges
+		Find a spanning tree of the graph from a given start node as a list of edges
 		"""
 		seen = {start}
 		stack = [start]
