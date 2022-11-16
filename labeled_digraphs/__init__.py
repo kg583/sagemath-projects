@@ -1,3 +1,5 @@
+from copy import copy
+
 from sage.graphs.digraph import DiGraph
 
 
@@ -184,6 +186,35 @@ class LabeledDiGraph(DiGraph):
 					tree.append(edge)
 					
 		return tree
+	
+	def stallings_fold(self, inplace=False):
+		"""
+		Fold the graph in the manner of Stallings, either inplace or as a copy.
+		
+		A graph is folded if no two incoming or outgoing edges from a vertex share the same label.
+		The language of a graph composed labeled cycles starting at a central vertex is equivalent to the language of its folding.
+		"""
+		G = self if inplace else copy(self)
+		
+		folded = set()
+		while len(folded) < G.order():
+			vertices = iter(G)
+			while (vertex := next(vertices)) in folded:
+				pass
+			
+			incoming, outgoing = {}, {}
+			for edge in G.incoming_edge_iterator(vertex):
+				incoming[edge[2]] = incoming.get(edge[2], []) + [edge[0]]
+				
+			for edge in G.outgoing_edge_iterator(vertex):
+				outgoing[edge[2]] = outgoing.get(edge[2], []) + [edge[1]]
+				
+			G.merge_vertices(incoming)
+			G.merge_vertices(outgoing)
+			folded.add(vertex)
+			
+		if not inplace:
+			return G
 		
 	def tensor_product(self, other):
 		"""
