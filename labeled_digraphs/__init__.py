@@ -135,7 +135,7 @@ class LabeledDiGraph(DiGraph):
 	
 	def permutation_group(self):
 		"""
-		Compute the permutation group corresponding to the graph interpreted as a Cayley graph with labels as generators
+		Compute the permutation group corresponding to the graph interpreted as a Cayley graph with labels as generators.
 		
 		The graph must be regular of degree one to be a Cayley graph.
 		"""
@@ -170,7 +170,7 @@ class LabeledDiGraph(DiGraph):
 		
 	def spanning_tree(self, start):
 		"""
-		Find a spanning tree of the graph from a given start node as a list of edges
+		Find a spanning tree of the graph from a given start node as a list of edges.
 		"""
 		seen = {start}
 		stack = [start]
@@ -187,7 +187,7 @@ class LabeledDiGraph(DiGraph):
 		
 	def tensor_product(self, other):
 		"""
-		Return the labeled tensor product of the graph with another labeled digraph
+		Return the labeled tensor product (also called the Kronecker or categorical product) of the graph with another labeled digraph.
 		
 		The tensor product of two labeled digraphs is a graph with vertex set equal to the Cartesian product of the component vertex sets.
 		An edge connecting (u, w) and (v, x) exists in the product graph if and only if u ~ w and v ~ x via edges with the same label.
@@ -205,10 +205,10 @@ class LabeledDiGraph(DiGraph):
 				
 	def walk(self, path, start):
 		"""
-		Return a list of vertices given a path in the graph and a starting vertex
+		Return a list of vertices given a path in the graph and a starting vertex.
 		
-		The path must be traversal from the given starting vertex.
-		If the graph is not regular, the choice of outgoing edge is arbitrary.
+		The path must be traversible from the given starting vertex.
+		If the graph is not regular, the choice of outgoing edge is based on the internal ordering.
 		"""
 		seq = [start]
 		while path:
@@ -225,7 +225,7 @@ class LabeledDiGraph(DiGraph):
 		
 	def is_walk(self, path, start, end, simple=False):
 		"""
-		Check if a given path connects the starting and ending vertices
+		Check if a given path connects the starting and ending vertices.
 		
 		If the walk is simple, the ending vertex is not visited before the walk is complete.
 		"""
@@ -234,7 +234,7 @@ class LabeledDiGraph(DiGraph):
 		
 	def is_cycle(self, path, start, simple=False):
 		"""
-		Check if a given path connects a vertex to itself
+		Check if a given path connects a vertex to itself.
 		
 		If the cycle is simple, the starting vertex is visited only at the start and end of the cycle. 
 		"""
