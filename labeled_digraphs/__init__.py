@@ -30,6 +30,12 @@ class LabeledDiGraph(DiGraph):
 				edges_out.add((o, l))
 					
 		return True
+	
+	def is_vertex_transitive(self, partition=None, verbosity=0, order=False, return_group=True, orbits=False):
+		"""
+		Check whether the graph is vertex transitive with respect to its labels.
+		"""
+		return super().is_vertex_transitive(partition=partition, verbosity=verbosity, edge_labels=True, return_group=return_group, orbits=False)
 		
 	def label_subgraph(self, label, vertices=None, edges=None, inplace=False, vertex_property=None, edge_property=None, algorithm=None, immutable=None):
 		"""
