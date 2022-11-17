@@ -1,6 +1,6 @@
 from sage.rings.integer import Integer
 
-from labeled_digraphs import LabeledDiGraph
+from labelled_digraphs import LabelledDiGraph
 
 
 class CollatzMapping:
