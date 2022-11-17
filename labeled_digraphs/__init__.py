@@ -11,6 +11,14 @@ class LabeledDiGraph(DiGraph):
 	Initialization can be done with any of the data formats used for a standard DiGraph.
 	Label existence is not checked during initialization to reduce overhead and permit piecewise construction of graphs.
 	"""
+	def is_cycle(self, path, start, simple=False):
+		"""
+		Check if a given path connects a vertex to itself.
+		
+		If the cycle is simple, the starting vertex is visited only at the start and end of the cycle. 
+		"""
+		return self.is_walk(path, start, start, simple)
+	
 	def is_regular(self):
 		"""
 		Check whether the graph is regular with respect to its labels.
@@ -36,6 +44,15 @@ class LabeledDiGraph(DiGraph):
 		Check whether the graph is vertex transitive with respect to its labels.
 		"""
 		return super().is_vertex_transitive(partition=partition, verbosity=verbosity, edge_labels=True, return_group=return_group, orbits=False)
+	
+	def is_walk(self, path, start, end, simple=False):
+		"""
+		Check if a given path connects the starting and ending vertices.
+		
+		If the walk is simple, the ending vertex is not visited before the walk is complete.
+		"""
+		walk = self.walk(path, start)
+		return walk[-1] == end and (end not in walk[1:-1] or not simple)
 		
 	def label_subgraph(self, label, vertices=None, edges=None, inplace=False, vertex_property=None, edge_property=None, algorithm=None, immutable=None):
 		"""
@@ -112,6 +129,7 @@ class LabeledDiGraph(DiGraph):
 		Return a list of labels given a sequence of edges.
 		
 		The edges must define a path through the graph, in that each edge's terminus is the next edge's origin.
+		Edges are not required to have labels.
 		"""
 		path = []
 		while edges[1:]:
@@ -259,20 +277,3 @@ class LabeledDiGraph(DiGraph):
 				raise ValueError(f"There is no outgoing edge labeled {label} from vertex {start}") from None
 				
 		return seq
-		
-	def is_walk(self, path, start, end, simple=False):
-		"""
-		Check if a given path connects the starting and ending vertices.
-		
-		If the walk is simple, the ending vertex is not visited before the walk is complete.
-		"""
-		walk = self.walk(path, start)
-		return walk[-1] == end and (end not in walk[1:-1] or not simple)
-		
-	def is_cycle(self, path, start, simple=False):
-		"""
-		Check if a given path connects a vertex to itself.
-		
-		If the cycle is simple, the starting vertex is visited only at the start and end of the cycle. 
-		"""
-		return self.is_walk(path, start, start, simple)
