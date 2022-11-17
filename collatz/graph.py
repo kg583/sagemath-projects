@@ -1,4 +1,4 @@
-from labeled_digraphs import LabeledDigraph
+from labelled_digraphs import LabelledDigraph
 
 
 def collatz_graph(limit=5):
@@ -9,7 +9,7 @@ def collatz_graph(limit=5):
 	f = [lambda x: x/2, lambda x: (3*x+1)/2]
 	g = [lambda x: 2*x, lambda x: (2*x-1)/3]
 
-	graph = LabeledDiGraph([(0, 0, "+0"), (-1, -1, "+1")], loops=True, multiedges=True)
+	graph = LabelledDiGraph([(0, 0, "+0"), (-1, -1, "+1")], loops=True, multiedges=True)
 	levels = {0: 0, -1: 0}
 	
 	
