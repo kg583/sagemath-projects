@@ -166,9 +166,14 @@ class LabelledDiGraph(DiGraph):
 		
 		The graph must be regular of degree one to be a Cayley graph.
 		"""
-		S = SymmetricGroup(self.vertices())
+		from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+		from sage.groups.perm_gps.permgroup import PermutationGroup
+
+		S = SymmetricGroup(range(self.order()))
+		vertex_ordering = {vertex: i for i, vertex in enumerate(self.vertices())}
+
 		labels = self.edge_labels()
-		images = {label: {vertex: None for vertex in self.vertices()} for label in labels}
+		images = {label: [None] * self.order() for label in labels}
 		
 		for label in labels:
 			for vertex in self:
@@ -176,10 +181,10 @@ class LabelledDiGraph(DiGraph):
 				if len(neighbors_out) != 1:
 					raise ValueError("Graph is not regular of degree one and thus is not a Cayley graph") from None
 					
-				images[label][vertex] = neighbors_out[0]
+				images[label][vertex_ordering[vertex]] = vertex_ordering[neighbors_out[0]]
 				
 		try:
-			return PermutationGroup(*[S(images[label].values()) for label in images])
+			return PermutationGroup([*map(S, images.values())])
 		except ValueError:
 			raise ValueError("Graph is not a Cayley graph") from None
 		
