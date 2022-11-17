@@ -135,7 +135,7 @@ class LabelledDiGraph(DiGraph):
 		path = []
 		while edges[1:]:
 			if edges[0][1] != edges[1][0]:
-				raise ValueError(f"Edges {edges[0]} and {edges[1]} are not incident") from None
+				raise ValueError(f"Edges {edges[0]} and {edges[1]} are not incident")
 				
 			edge = edges.pop(0)
 			path.append(self.edge_label(*edge) if len(edge) < 3 else edge[2])
@@ -154,7 +154,7 @@ class LabelledDiGraph(DiGraph):
 				path.append({t: l for o, t, l in self.outgoing_edge_iterator(vertices[0], labels=True)}[vertices[1]])
 			
 			except KeyError:
-				raise ValueError(f"Vertices {vertices[0]} and {vertices[1]} are not adjacent") from None
+				raise ValueError(f"Vertices {vertices[0]} and {vertices[1]} are not adjacent")
 				
 			vertices.pop(0)
 			
@@ -179,14 +179,14 @@ class LabelledDiGraph(DiGraph):
 			for vertex in self:
 				neighbors_out = self.neighbors_out_by_label(vertex, label)
 				if len(neighbors_out) != 1:
-					raise ValueError("Graph is not regular of degree one and thus is not a Cayley graph") from None
+					raise ValueError("Graph is not regular of degree one and thus is not a Cayley graph")
 					
 				images[label][vertex_ordering[vertex]] = vertex_ordering[neighbors_out[0]]
 				
 		try:
 			return PermutationGroup([*map(S, images.values())])
 		except ValueError:
-			raise ValueError("Graph is not a Cayley graph") from None
+			raise ValueError("Graph is not a Cayley graph")
 		
 	def spanning_paths(self, start):
 		"""
@@ -284,6 +284,6 @@ class LabelledDiGraph(DiGraph):
 				seq.append(start)
 				
 			except StopIteration:
-				raise ValueError(f"There is no outgoing edge labeled {label} from vertex {start}") from None
+				raise ValueError(f"There is no outgoing edge labeled {label} from vertex {start}")
 				
 		return seq
