@@ -28,15 +28,15 @@ class CollatzMapping:
 			try:
 				m, r = Integer(coeffs[1]), Integer(-coeffs.get(0, 0))
 			except KeyError:
-				raise ValueError(f"Component '{eq}' is constant") from None
+				raise ValueError(f"Component '{eq}' is constant")
 				
 			try:
 				i = r / m % self.d
 			except ZeroDivisionError:
-				raise ValueError(f"Linear coefficient of '{eq}' is divisible by the degree ({self.d})") from None
+				raise ValueError(f"Linear coefficient of '{eq}' is divisible by the degree ({self.d})")
 				
 			if self.m[i] is not None:
-				raise ValueError(f"Component '{eq}' clashes with earlier component on {i} mod {self.d}") from None
+				raise ValueError(f"Component '{eq}' clashes with earlier component on {i} mod {self.d}")
 				
 			self.m[i], self.r[i] = m, r
 			
