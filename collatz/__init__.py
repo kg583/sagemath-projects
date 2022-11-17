@@ -151,7 +151,7 @@ class CollatzMapping:
 		An edge labeled i connects vertices u and v if the ith component evaluated at u equals v
 		If the graph is specified to be abelian, all constant coefficients are ignored
 		"""
-		G = LabeledDiGraph(loops=True, multiedges=True)
+		G = LabelledDiGraph(loops=True, multiedges=True)
 		for x in range(p):
 			for i in range(self.d):
 				G.add_edge(x, (self.m[i] * x - self.r[i] * (not abelian)) / self.d % p, i)
@@ -165,7 +165,7 @@ class CollatzMapping:
 		This graph is the tensor product of the unary iteration graph with itself
 		This graph is isomorphic to the tensor product of the unary iteration graph with its abelianization
 		"""
-		G = LabeledDiGraph(loops=True, multiedges=True)
+		G = LabelledDiGraph(loops=True, multiedges=True)
 		for x in range(p):
 			for y in range(p):
 				for i in range(self.d):
