@@ -20,7 +20,7 @@ class LabelledDiGraph(DiGraph):
 		"""
 		return self.is_walk(path, start, start, simple)
 	
-	def is_regular(self, k=1):
+	def is_regular(self, k=None):
 		"""
 		Check whether the graph is regular with respect to its labels.
 		
@@ -31,7 +31,10 @@ class LabelledDiGraph(DiGraph):
 		for o, t, l in self.edge_iterator(labels=True):
 			edges_in[t][l] += 1
 			edges_out[o][l] += 1
-					
+		
+		if k is None:
+			k = edges_in.items()[0][1].items()[0][1]
+		
 		return all(set(edges_in[v].values()) == {k} for v in self) and all(set(edges_out[v].values()) == {k} for v in self)
 	
 	def is_vertex_transitive(self, partition=None, verbosity=0, order=False, return_group=True, orbits=False):
