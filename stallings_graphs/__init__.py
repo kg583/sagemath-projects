@@ -2,6 +2,9 @@ from operator import neg
 
 from labelled_digraphs import LabelledDiGraph
 
+from sage.rings.integer import ZZ
+from sage.graphs.digraph import DiGraph
+
 
 class StallingsGraph(LabelledDiGraph):
 	"""
@@ -19,9 +22,16 @@ class StallingsGraph(LabelledDiGraph):
 	Elements of explicit alphabets must have inverses accessible via .inverse().
 	"""
 	def __init__(self, data=None, alphabet=None, pos=None, format=None, weighted=None, vertex_labels=True, name=None, convert_empty_dict_labels_to_None=None, immutable=False):
-		if format is None and isinstance(data, list) and ((isinstance(data[0], str) or isinstance(data[0], list) and isinstance(data[0][0], str))):
-			format = "generators"
-			fold = True
+		if format is None and isinstance(data, list):
+			if isinstance(data[0], str) or isinstance(data[0], list) and isinstance(data[0][0], str)):
+				format = "generators"
+				alphabet = [*map(chr, range(65, 91))]
+			elif isinstance(data[0], list) and isinstance(data[0][0], int):
+				format = "generators"
+				alphabet = ZZ
+			elif alphabet is not None:
+				format = "generators"
+				
 			
 		super().__init__(data=data if format != "generators" else None, pos=pos, loops=True, format=format if format != "generators" else None,
 						 weighted=weighted, vertex_labels=vertex_labels, name=name,
@@ -31,13 +41,15 @@ class StallingsGraph(LabelledDiGraph):
 		if format == "generators":
 			self.add_vertex(0)
 			for generator in data:
-				self.add_generator(generator, False)
+				self._add(generator)
 					
-		if format == "generators" or isinstance(data, LabelledDiGraph):
+		if format == "generators" or isinstance(data, DiGraph) and not isinstance(data, StallingsGraph):
 			self._fold()
 			
 	def _add(generator):
+		generator = list(generator)
 		order = self.order()
+		
 		if len(generator) == 1:
 			self.add_edge(0, 0, generator[0])
 		else:
@@ -102,6 +114,11 @@ class StallingsGraph(LabelledDiGraph):
 		self._fold()
 			
 	def basis(self, vertex=0):
+		"""
+		Return a basis for the language of the graph at the specified vertex.
+		
+		Two languages are equivalent if and only if they have equivalent bases.
+		"""
 		tree = set(self.spanning_tree(vertex))
 		
 		paths = {vertex: []}
@@ -113,6 +130,9 @@ class StallingsGraph(LabelledDiGraph):
 	language = basis
 		
 	def is_finite_index(self):
-		return self.is_regular()
+		"""
+		Check whether the subgroup represented by this graph is of finite index
+		"""
+		return self.is_regular(k=1)
 		
 	product = tensor_product
