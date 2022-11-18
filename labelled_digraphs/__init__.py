@@ -1,4 +1,3 @@
-from collections import defaultdict
 from copy import copy
 
 from sage.graphs.digraph import DiGraph
@@ -29,12 +28,13 @@ class LabelledDiGraph(DiGraph):
 		
 		A labelled digraph is regular if and only if every vertex has in-degree and out-degree k with respect to each label.
 		"""
-		edges_in, edges_out = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
+		edges_in = {v: {l: 0 for l in self.edge_labels()} for v in self}
+		edges_out = copy(edges_in)
 		for o, t, l in self.edge_iterator(labels=True):
 			edges_in[t][l] += 1
 			edges_out[o][l] += 1
 					
-		return all(set(edges_in[v].values()) == {k} for v in edges_in) and all(set(edges_out[v].values()) == {k} for v in edges_out)
+		return all(set(edges_in[v].values()) == {k} for v in self) and all(set(edges_out[v].values()) == {k} for v in self)
 	
 	def is_vertex_transitive(self, partition=None, verbosity=0, order=False, return_group=True, orbits=False):
 		"""
