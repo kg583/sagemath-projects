@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import copy
 
 from sage.graphs.digraph import DiGraph
@@ -12,6 +13,8 @@ class LabelledDiGraph(DiGraph):
 	Label existence is not checked during initialization to reduce overhead and permit piecewise construction of graphs.
 	A dedicated backend to watch edge construction would be preferable.
 	"""
+	alphabet = edge_labels
+	
 	def is_cycle(self, path, start, simple=False):
 		"""
 		Check if a given path connects a vertex to itself.
@@ -20,25 +23,18 @@ class LabelledDiGraph(DiGraph):
 		"""
 		return self.is_walk(path, start, start, simple)
 	
-	def is_regular(self):
+	def is_regular(self, k=1):
 		"""
 		Check whether the graph is regular with respect to its labels.
 		
-		A labelled digraph is regular if and only if every vertex has the same in-degree and out-degree for each label.
+		A labelled digraph is regular if and only if every vertex has in-degree and out-degree k with respect to each label.
 		"""
-		edges_in, edges_out = set(), set()
+		edges_in, edges_out = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
 		for o, t, l in self.edge_iterator(labels=True):
-			if (t, l) in edges_in:
-				return False
-			else:
-				edges_in.add((t, l))
-				
-			if (o, l) in edges_out:
-				return False
-			else:
-				edges_out.add((o, l))
+			edges_in[t][l] += 1
+			edges_out[o][l] += 1
 					
-		return True
+		return all(set(edges_in[v].values()) == {k} for v in edges_in) and all(set(edges_out[v].values()) == {k} for v in edges_out)
 	
 	def is_vertex_transitive(self, partition=None, verbosity=0, order=False, return_group=True, orbits=False):
 		"""
@@ -188,18 +184,6 @@ class LabelledDiGraph(DiGraph):
 		except ValueError:
 			raise ValueError("Graph is not a Cayley graph")
 		
-	def spanning_paths(self, start):
-		"""
-		Return a dictionary of paths connecting a given starting vertex to any other.
-		
-		Each entry is index by the terminal vertex, with paths stored as lists of labels.
-		"""
-		paths = {start: []}
-		for edge in self.spanning_tree(start):
-			paths[edge[1]] = paths[edge[0]] + [edge[2]]
-			
-		return path
-		
 	def spanning_tree(self, start):
 		"""
 		Find a spanning tree of the graph from a given start node as a list of edges.
@@ -216,39 +200,6 @@ class LabelledDiGraph(DiGraph):
 					tree.append(edge)
 					
 		return tree
-	
-	def stallings_fold(self, inplace=False):
-		"""
-		Fold the graph in the manner of Stallings, either inplace or as a copy.
-		
-		A graph is folded if no two incoming or outgoing edges from a vertex share the same label.
-		The language of a graph composed labeled cycles starting at a central vertex is equivalent to the language of its folding.
-		"""
-		G = self if inplace else copy(self)
-		
-		folded = set()
-		while len(folded) < G.order():
-			vertices = iter(G)
-			while (vertex := next(vertices)) in folded:
-				pass
-			
-			incoming, outgoing = {}, {}
-			for edge in G.incoming_edge_iterator(vertex):
-				incoming[edge[2]] = incoming.get(edge[2], []) + [edge[0]]
-				
-			for edge in G.outgoing_edge_iterator(vertex):
-				outgoing[edge[2]] = outgoing.get(edge[2], []) + [edge[1]]
-				
-			for fold in incoming.values():
-				G.merge_vertices(fold)
-
-			for fold in outgoing.values():
-				G.merge_vertices(fold)
-
-			folded.add(vertex)
-			
-		if not inplace:
-			return G
 		
 	def tensor_product(self, other):
 		"""
@@ -286,4 +237,4 @@ class LabelledDiGraph(DiGraph):
 			except StopIteration:
 				raise ValueError(f"There is no outgoing edge labeled {label} from vertex {start}")
 				
-		return seq
+		return seq		
