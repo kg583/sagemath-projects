@@ -12,8 +12,6 @@ class LabelledDiGraph(DiGraph):
 	Label existence is not checked during initialization to reduce overhead and permit piecewise construction of graphs.
 	A dedicated backend to watch edge construction would be preferable.
 	"""
-	alphabet = edge_labels
-	
 	def is_cycle(self, path, start, simple=False):
 		"""
 		Check if a given path connects a vertex to itself.
