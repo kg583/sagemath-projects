@@ -16,6 +16,7 @@ class LabelledDiGraph(DiGraph):
 		"""
 		Check if a given path connects a vertex to itself.
 		
+		A path is a sequence of labels of incident edges.
 		If the cycle is simple, the starting vertex is visited only at the start and end of the cycle. 
 		"""
 		return self.is_walk(path, start, start, simple)
@@ -47,6 +48,7 @@ class LabelledDiGraph(DiGraph):
 		"""
 		Check if a given path connects the starting and ending vertices.
 		
+		A path is a sequence of labels of incident edges.
 		If the walk is simple, the ending vertex is not visited before the walk is complete.
 		"""
 		walk = self.walk(path, start)
