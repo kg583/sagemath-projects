@@ -52,6 +52,27 @@ class CollatzMapping:
 		Return the ith component of the mapping
 		"""
 		return (self.m[i], self.r[i])
+	
+	def iterate(self, x, max_iterations=None):
+		"""
+		Iterate the mapping on a given input until a cycle is reached or max_iterations have been computed
+		
+		Separates output into lists of pre-periodic and periodic iterates
+		If max_iterations is reached and a cycle is not detected, all iterates will be assumed pre-periodic
+		"""
+		iterates = [x]
+		while max_iterations is None or len(iterates) < max_iterations:		
+			x = self(x)
+			if x in iterates:
+				break
+				
+			iterates.append(x)
+		
+		else:
+			return iterates, []
+		
+		loop = iterates.index(x)
+		return iterates[:loop], iterates[loop:]
 		
 	def degree(self):
 		"""
