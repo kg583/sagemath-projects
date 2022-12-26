@@ -40,18 +40,34 @@ class CollatzMapping:
 				
 			self.m[i], self.r[i] = m, r
 			
-	def __call__(self, x):
+	def __call__(self, x, i=None):
 		"""
 		Return the mapping evaluated at x
+		
+		If an explicit index is given, it will be used instead of x modulo the degree
 		"""
-		i = x % self.d
-		return (self.m[i] * x - self.r[i]) / self.d
+		i = i or x % self
+		return (self[i][0] * x - self[i][1]) / self.d
 		
 	def __getitem__(self, i):
 		"""
 		Return the ith component of the mapping
 		"""
-		return (self.m[i], self.r[i])
+		return (self.m[int(i)], self.r[int(i)])
+	
+	def __rmod__(self, x):
+		"""
+		Return x modulo the degree
+		"""
+		return x % self.d
+	
+	def is_periodic(self, x, max_iterations=None):
+		"""
+		Return whether a given input is a periodic point under the mapping
+		"""
+		return not self.iterate(x, max_iterations)[0]
+	
+	is_cyclic = is_periodic
 	
 	def iterate(self, x, max_iterations=None):
 		"""
@@ -73,6 +89,17 @@ class CollatzMapping:
 		
 		loop = iterates.index(x)
 		return iterates[:loop], iterates[loop:]
+	
+	def vector(self, x, length):
+		"""
+		Compute the iteration vector of a given input out to some length
+		"""
+		vector = []
+		while len(vector) < length:
+			vector.append(x % self.d)
+			x = self(x)
+			
+		return vector
 		
 	def degree(self):
 		"""
@@ -106,7 +133,7 @@ class CollatzMapping:
 		
 	def is_regular(self):
 		"""
-		Check whether the 0th component is non-affine
+		Check whether the 0th component is affine
 		"""
 		return self.r[0] == 0
 		
@@ -120,25 +147,25 @@ class CollatzMapping:
 		"""
 		Given an iteration vector, return its μ-vector
 		"""
-		return [self.m[int(vi)] for vi in v]
+		return [self[vi][0] for vi in v]
 		
 	def rho(self, v):
 		"""
 		Given an iteration vector, return its ρ-vector
 		"""
-		return [self.r[int(vi)] for vi in v]
+		return [self[vi][1] for vi in v]
 		
 	def pi(self, v):
 		"""
 		Return the product value of an iteration vector
 		"""
-		return prod(self.m[int(vi)] for vi in v)
+		return prod(self[vi][0] for vi in v)
 		
 	def N(self, v):
 		"""
 		Return the cycle numerator corresponding to an iteration vector
 		"""
-		return sum(self.r[int(v[j])] * self.pi(v[j+1:]) * self.d^j for j in range(len(v)))
+		return sum(self[v[j]][1] * self.pi(v[j+1:]) * self.d^j for j in range(len(v)))
 		
 	def D(self, v):
 		"""
@@ -190,6 +217,6 @@ class CollatzMapping:
 		for x in range(p):
 			for y in range(p):
 				for i in range(self.d):
-					G.add_edge((x, y), ((self.m[i] * x - self.r[i]) / self.d % p, (self.m[i] * y - self.r[i]) / self.d % p), i)
+					G.add_edge((x, y), self(x, i) % p, self(y, i) % p), i)
 					
 		return G
