@@ -1,4 +1,4 @@
-from itertools import permutations
+from itertools import product
 
 from sage.rings.integer import Integer
 
@@ -68,7 +68,7 @@ class CollatzMapping:
 			return self
 		
 		eqs = []
-		for vec in permutations(range(self.d), r=int(n)):
+		for vec in product(range(self.d), repeat=int(n)):
 			m, r = 1, 0
 			for i in vec:
 				m = self[i][0] * m / self.d
@@ -249,3 +249,10 @@ class CollatzMapping:
 					G.add_edge((x, y), self(x, i) % p, self(y, i) % p), i)
 					
 		return G
+	
+
+def sigma(v, k=1):
+	"""
+	Rotate a vector k times to the left
+	"""
+	return v[k:] + v[:k]
