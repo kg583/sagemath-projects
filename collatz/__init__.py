@@ -19,7 +19,7 @@ class CollatzMapping:
 		Each Expression must
 			1) be linear in the provided variable, which may vary across each input,
 			2) occupy a unique equivalence class modulo the degree of the mapping, and
-			3) have linear coefficient that is nonzero module the degree.	
+			3) have linear coefficient that is nonzero modulo the degree.	
 		"""
 		self.d = Integer(len(eqs))
 		self.m, self.r = [None] * self.d, [None] * self.d
