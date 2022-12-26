@@ -142,6 +142,12 @@ class CollatzMapping:
 		Check whether the 0th component is the identity
 		"""
 		return self.is_regular() and self.m[0] == 1
+	
+	def expected_behavior(self):
+		"""
+		Return the conjectured behavior of this mapping
+		"""
+		return "convergent" if prod(self.m) < self.d ^ self.d else "divergent"
 		
 	def mu(self, v):
 		"""
