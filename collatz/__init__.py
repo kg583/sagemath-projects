@@ -1,3 +1,5 @@
+from itertools import permutations
+
 from sage.rings.integer import Integer
 
 from labelled_digraphs import LabelledDiGraph
@@ -12,7 +14,7 @@ class CollatzMapping:
 	"""
 	def __init__(self, *eqs):
 		"""
-		Initialize a mapping using a list of Expressions, provided in any order
+		Initialize a mapping using a list of Expressions or coefficient tuples, provided in any order
 		
 		Each Expression must
 			1) be linear in the provided variable, which may vary across each input,
@@ -23,7 +25,10 @@ class CollatzMapping:
 		self.m, self.r = [None] * self.d, [None] * self.d
 		
 		for eq in eqs:
-			coeffs = {power: coeff for coeff, power in eq.coefficients()}
+			try:
+				coeffs = {power: coeff for coeff, power in eq.coefficients()}
+			except AttributeError:
+				coeffs = {1: eq[0], 0: eq[1]}
 			
 			try:
 				m, r = Integer(coeffs[1]), Integer(-coeffs.get(0, 0))
@@ -54,6 +59,24 @@ class CollatzMapping:
 		Return the ith component of the mapping
 		"""
 		return (self.m[int(i)], self.r[int(i)])
+	
+	def __pow__(self, n):
+		"""
+		Return a mapping which is equivalent to iterating the mapping n times
+		"""
+		if n == 1:
+			return self
+		
+		eqs = []
+		for vec in permutations(range(self.d), r=int(n)):
+			m, r = 1, 0
+			for i in vec:
+				m = self[i][0] * m / self.d
+				r = (self[i][0] * r + self[i][1]) / self.d
+				
+			eqs.append((m * self.d ^ n, -r * self.d ^ n))
+			
+		return CollatzMapping(*eqs)
 	
 	def __rmod__(self, x):
 		"""
