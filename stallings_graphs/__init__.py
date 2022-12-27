@@ -19,13 +19,13 @@ class StallingsGraph(LabelledDiGraph):
 		2) Integers: 			the alphabet spans the positive integers; the inverse of x is -x
 		
 	If the generators are not over either of these alphabets, the alphabet must be explicitly passed.
-	Elements of explicit alphabets must have inverses accessible via .inverse().
+	Elements of explicit alphabets must have inverses accessible via __pow__(-1)
 	"""
 	def __init__(self, data=None, alphabet=None, pos=None, format=None, weighted=None, vertex_labels=True, name=None, convert_empty_dict_labels_to_None=None, immutable=False):
 		if format is None and isinstance(data, list):
 			if isinstance(data[0], str) or isinstance(data[0], list) and isinstance(data[0][0], str)):
 				format = "generators"
-				alphabet = [*map(chr, range(65, 91))]
+				alphabet = "abcdefghijklmnopqrstuvwxyz"
 			elif isinstance(data[0], list) and isinstance(data[0][0], int):
 				format = "generators"
 				alphabet = ZZ
@@ -88,7 +88,7 @@ class StallingsGraph(LabelledDiGraph):
 		elif 1 in self.alphabet:
 			func = operator.neg
 		else:
-			func = lambda x: x.inverse()
+			func = lambda x: x.__pow__(-1)
 			
 		try:
 			return [*reversed(map(func, word))]
