@@ -215,7 +215,7 @@ class LabelledDiGraph(DiGraph):
 		for u, w, l in self.edge_iterator(labels=True):
 			for v, x, m in other.edge_iterator(labels=True):
 				if l == m:
-					P.add_edge((u, v), (w, x), l)
+					G.add_edge((u, v), (w, x), l)
 						
 		return G
 

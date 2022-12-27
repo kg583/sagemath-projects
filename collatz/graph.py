@@ -2,10 +2,10 @@ from labelled_digraphs import LabelledDigraph
 
 
 def collatz_graph(limit=5):
-  """
-  Draws a graph of the Collatz function and its inverse iterated from the points 0 and -1
-  The vertices are arranged in concentric circles based on their total stopping time
-  """
+	"""
+	Draws a graph of the Collatz function and its inverse iterated from the points 0 and -1
+	The vertices are arranged in concentric circles based on their total stopping time
+	"""
 	f = [lambda x: x/2, lambda x: (3*x+1)/2]
 	g = [lambda x: 2*x, lambda x: (2*x-1)/3]
 

@@ -1,3 +1,5 @@
+from itertools import product
+
 from sage.rings.integer import Integer
 
 from labelled_digraphs import LabelledDiGraph
@@ -12,18 +14,21 @@ class CollatzMapping:
 	"""
 	def __init__(self, *eqs):
 		"""
-		Initialize a mapping using a list of Expressions, provided in any order
+		Initialize a mapping using a list of Expressions or coefficient tuples, provided in any order
 		
 		Each Expression must
 			1) be linear in the provided variable, which may vary across each input,
 			2) occupy a unique equivalence class modulo the degree of the mapping, and
-			3) have linear coefficient that is nonzero module the degree.	
+			3) have linear coefficient that is nonzero modulo the degree.	
 		"""
 		self.d = Integer(len(eqs))
 		self.m, self.r = [None] * self.d, [None] * self.d
 		
 		for eq in eqs:
-			coeffs = {power: coeff for coeff, power in eq.coefficients()}
+			try:
+				coeffs = {power: coeff for coeff, power in eq.coefficients()}
+			except AttributeError:
+				coeffs = {1: eq[0], 0: eq[1]}
 			
 			try:
 				m, r = Integer(coeffs[1]), Integer(-coeffs.get(0, 0))
@@ -40,18 +45,84 @@ class CollatzMapping:
 				
 			self.m[i], self.r[i] = m, r
 			
-	def __call__(self, x):
+	def __call__(self, x, i=None):
 		"""
 		Return the mapping evaluated at x
+		
+		If an explicit index is given, it will be used instead of x modulo the degree
 		"""
-		i = x % self.d
-		return (self.m[i] * x - self.r[i]) / self.d
+		i = i or x % self
+		return (self[i][0] * x - self[i][1]) / self.d
 		
 	def __getitem__(self, i):
 		"""
 		Return the ith component of the mapping
 		"""
-		return (self.m[i], self.r[i])
+		return (self.m[int(i)], self.r[int(i)])
+	
+	def __pow__(self, n):
+		"""
+		Return a mapping which is equivalent to iterating the mapping n times
+		"""
+		if n == 1:
+			return self
+		
+		eqs = []
+		for vec in product(range(self.d), repeat=int(n)):
+			m, r = 1, 0
+			for i in vec:
+				m = self[i][0] * m / self.d
+				r = (self[i][0] * r + self[i][1]) / self.d
+				
+			eqs.append((m * self.d ^ n, -r * self.d ^ n))
+			
+		return CollatzMapping(*eqs)
+	
+	def __rmod__(self, x):
+		"""
+		Return x modulo the degree
+		"""
+		return x % self.d
+	
+	def is_periodic(self, x, max_iterations=None):
+		"""
+		Return whether a given input is a periodic point under the mapping
+		"""
+		return not self.iterate(x, max_iterations)[0]
+	
+	is_cyclic = is_periodic
+	
+	def iterate(self, x, max_iterations=None):
+		"""
+		Iterate the mapping on a given input until a cycle is reached or max_iterations have been computed
+		
+		Separates output into lists of pre-periodic and periodic iterates
+		If max_iterations is reached and a cycle is not detected, all iterates will be assumed pre-periodic
+		"""
+		iterates = [x]
+		while max_iterations is None or len(iterates) < max_iterations:		
+			x = self(x)
+			if x in iterates:
+				break
+				
+			iterates.append(x)
+		
+		else:
+			return iterates, []
+		
+		loop = iterates.index(x)
+		return iterates[:loop], iterates[loop:]
+	
+	def vector(self, x, length):
+		"""
+		Compute the iteration vector of a given input out to some length
+		"""
+		vector = []
+		while len(vector) < length:
+			vector.append(x % self.d)
+			x = self(x)
+			
+		return vector
 		
 	def degree(self):
 		"""
@@ -85,7 +156,7 @@ class CollatzMapping:
 		
 	def is_regular(self):
 		"""
-		Check whether the 0th component is non-affine
+		Check whether the 0th component is affine
 		"""
 		return self.r[0] == 0
 		
@@ -94,30 +165,36 @@ class CollatzMapping:
 		Check whether the 0th component is the identity
 		"""
 		return self.is_regular() and self.m[0] == 1
+	
+	def expected_behavior(self):
+		"""
+		Return the conjectured behavior of this mapping
+		"""
+		return "convergent" if prod(self.m) < self.d ^ self.d else "divergent"
 		
 	def mu(self, v):
 		"""
 		Given an iteration vector, return its μ-vector
 		"""
-		return [self.m[int(vi)] for vi in v]
+		return [self[vi][0] for vi in v]
 		
 	def rho(self, v):
 		"""
 		Given an iteration vector, return its ρ-vector
 		"""
-		return [self.r[int(vi)] for vi in v]
+		return [self[vi][1] for vi in v]
 		
 	def pi(self, v):
 		"""
 		Return the product value of an iteration vector
 		"""
-		return prod(self.m[int(vi)] for vi in v)
+		return prod(self[vi][0] for vi in v)
 		
 	def N(self, v):
 		"""
 		Return the cycle numerator corresponding to an iteration vector
 		"""
-		return sum(self.r[int(v[j])] * self.pi(v[j+1:]) * self.d^j for j in range(len(v)))
+		return sum(self[v[j]][1] * self.pi(v[j+1:]) * self.d^j for j in range(len(v)))
 		
 	def D(self, v):
 		"""
@@ -169,6 +246,13 @@ class CollatzMapping:
 		for x in range(p):
 			for y in range(p):
 				for i in range(self.d):
-					G.add_edge((x, y), ((self.m[i] * x - self.r[i]) / self.d % p, (self.m[i] * y - self.r[i]) / self.d % p), i)
+					G.add_edge((x, y), self(x, i) % p, self(y, i) % p), i)
 					
 		return G
+	
+
+def sigma(v, k=1):
+	"""
+	Rotate a vector k times to the left
+	"""
+	return v[k:] + v[:k]

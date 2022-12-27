@@ -6,4 +6,4 @@
 
 ### Read the paper [on the arXiv](https://arxiv.org/abs/2106.15677)
 
-### Read the paper in the Proceedings of the AMS (TBA)
+### Read the paper [in the Proceedings of the AMS](https://www.ams.org/journals/proc/2023-151-02/S0002-9939-2022-16148-6/)
