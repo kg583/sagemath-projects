@@ -1,9 +1,8 @@
-from operator import neg
-
 from labelled_digraphs import LabelledDiGraph
 
-from sage.rings.integer import ZZ
+from sage.sets.positive_integers import PositiveIntegers
 from sage.graphs.digraph import DiGraph
+	
 
 
 class StallingsGraph(LabelledDiGraph):
@@ -19,46 +18,50 @@ class StallingsGraph(LabelledDiGraph):
 		2) Integers: 			the alphabet spans the positive integers; the inverse of x is -x
 		
 	If the generators are not over either of these alphabets, the alphabet must be explicitly passed.
-	Elements of explicit alphabets must have inverses accessible via __pow__(-1)
+	Elements of explicit alphabets must have inverses accessible via __pow__(-1).
 	"""
-	def __init__(self, data=None, alphabet=None, pos=None, format=None, weighted=None, vertex_labels=True, name=None, convert_empty_dict_labels_to_None=None, immutable=False):
+	def __init__(self, data=None, alphabet=None, pos=None, loops=True, format=None,
+				 weighted=None, vertex_labels=True, name=None, multiedges=True, convert_empty_dict_labels_to_None=None, immutable=False):
 		if format is None and isinstance(data, list):
-			if isinstance(data[0], str) or isinstance(data[0], list) and isinstance(data[0][0], str)):
+			if isinstance(data[0], str) or isinstance(data[0], list) and isinstance(data[0][0], str):
 				format = "generators"
-				alphabet = "abcdefghijklmnopqrstuvwxyz"
+				self.alphabet = "abcdefghijklmnopqrstuvwxyz"
 			elif isinstance(data[0], list) and isinstance(data[0][0], int):
 				format = "generators"
-				alphabet = ZZ
+				self.alphabet = PositiveIntegers()
 			elif alphabet is not None:
 				format = "generators"
+				self.alphabet = alphabet
 				
 			
-		super().__init__(data=data if format != "generators" else None, pos=pos, loops=True, format=format if format != "generators" else None,
+		super().__init__(data=data if format != "generators" else None, pos=pos, loops=loops, format=format if format != "generators" else None,
 						 weighted=weighted, vertex_labels=vertex_labels, name=name,
-						 multiedges=True, convert_empty_dict_labels_to_None=convert_empty_dict_labels_to_None,
+						 multiedges=multiedges, convert_empty_dict_labels_to_None=convert_empty_dict_labels_to_None,
 						 immutable=immutable)
-						 
+		
 		if format == "generators":
 			self.add_vertex(0)
 			for generator in data:
 				self._add(generator)
+				
+			self._fold()
 					
-		if format == "generators" or isinstance(data, DiGraph) and not isinstance(data, StallingsGraph):
+		if isinstance(data, DiGraph) and not isinstance(data, StallingsGraph):
 			self._fold()
 			
-	def _add(generator):
+	def _add(self, generator):
 		generator = list(generator)
 		order = self.order()
 		
 		if len(generator) == 1:
-			self.add_edge(0, 0, generator[0])
+			self.add_oriented_edge(0, 0, generator[0])
 		else:
-			self.add_edge(0, order, generator[0])
+			self.add_oriented_edge(0, order, generator[0])
 			
 			for label in generator[1:-1]:
-				self.add_edge(order, (order := order + 1), label)
+				self.add_oriented_edge(order, (order := order + 1), label)
 				
-			self.add_edge(order, 0, generator[-1])
+			self.add_oriented_edge(order, 0, generator[-1])
 			
 	def _fold(self):
 		folded = set()
@@ -68,32 +71,60 @@ class StallingsGraph(LabelledDiGraph):
 				pass
 			
 			incoming, outgoing = {}, {}
-			for edge in self.incoming_edge_iterator(vertex):
-				incoming[edge[2]] = incoming.get(edge[2], []) + [edge[0]]
+			for edge in self.incoming_edge_iterator(vertex, labels=True):
+				if edge[2] in incoming:
+					root, fold = incoming[edge[2]], edge[0]
+					
+					loops = set()
+					if self.has_edge(root, fold):
+						loops |= set(self.edge_label(root, fold))
+					if self.has_edge(fold, root):
+						loops |= set(self.edge_label(fold, root))
+					
+					self.delete_edge(edge)
+					self.merge_vertices([root, fold])
+					
+					for loop in loops:
+						if not self.has_edge(root, root, loop):
+							self.add_edge(root, root, loop)
+							folded.discard(root)
+					
+				else:
+					incoming[edge[2]] = edge[0]
 				
-			for edge in self.outgoing_edge_iterator(vertex):
-				outgoing[edge[2]] = outgoing.get(edge[2], []) + [edge[1]]
-				
-			for fold in incoming.values():
-				self.merge_vertices(fold)
-
-			for fold in outgoing.values():
-				self.merge_vertices(fold)
-
+			for edge in self.outgoing_edge_iterator(vertex, labels=True):
+				if edge[2] in outgoing:
+					root, fold = outgoing[edge[2]], edge[1]
+					
+					loops = set()
+					if self.has_edge(root, fold):
+						loops |= set(self.edge_label(root, fold))
+					if self.has_edge(fold, root):
+						loops |= set(self.edge_label(fold, root))
+					
+					self.delete_edge(edge)
+					self.merge_vertices([root, fold])
+					
+					for loop in loops:
+						if not self.has_edge(root, root, loop):
+							self.add_edge(root, root, loop)
+							folded.discard(root)
+					
+				else:
+					outgoing[edge[2]] = edge[1]
+					
 			folded.add(vertex)
 			
-	def _inv(self, word):
+	def _inv(self, label):
 		if 'a' in self.alphabet:
-			func = str.swapcase
+			return label.swapcase()
 		elif 1 in self.alphabet:
-			func = operator.neg
+			return -label
 		else:
-			func = lambda x: x.__pow__(-1)
-			
-		try:
-			return [*reversed(map(func, word))]
-		except AttributeError:
-			raise ValueError(f"Elements of {self.alphabet} lack inverses.")
+			try:
+				return label ^ -1
+			except TypeError:
+				raise ValueError(f"Elements of {self.alphabet} lack inverses.")
 			
 	def add_generator(self, generator):
 		"""
@@ -112,6 +143,29 @@ class StallingsGraph(LabelledDiGraph):
 			self._add(generator)
 			
 		self._fold()
+		
+	def add_oriented_edge(self, u, v=None, label=None):
+		"""
+		Add an edge to the graph so that it is oriented in the direction of positive label.
+		
+		If the label is not contained in the alphabet, it will be inverted and the direction of the edge flipped.
+		"""
+		if v is None:
+			try:
+				u, v, label = u
+			except ValueError:
+				raise ValueError("Label for edge must be provided.")
+		else:
+			if label is None:
+				raise ValueError("Label for edge must be provided.")
+				
+		
+		if label in self.alphabet:
+			self.add_edge(u, v, label)
+			
+		else:
+			self.add_edge(v, u, self._inv(label))
+		
 			
 	def basis(self, vertex=0):
 		"""
@@ -125,9 +179,15 @@ class StallingsGraph(LabelledDiGraph):
 		for edge in tree:
 			paths[edge[1]] = paths[edge[0]] + [edge[2]]
 			
-		return [paths[edge[0]] + [edge[2]] + self._inv(paths[edge[1]]) for edge in self.edges() if edge not in tree]
+		return [paths[edge[0]] + [edge[2]] + self.inverse(paths[edge[1]]) for edge in self.edges() if edge not in tree]
 		
 	language = basis
+	
+	def inverse(self, word):
+		"""
+		Return the inverse of a word in this alphabet
+		"""
+		return [*reversed(map(self._inv, word))]
 		
 	def is_finite_index(self):
 		"""
@@ -135,4 +195,5 @@ class StallingsGraph(LabelledDiGraph):
 		"""
 		return self.is_regular(k=1)
 		
-	product = tensor_product
+	def product(self, other):
+		return super().tensor_product(other)
