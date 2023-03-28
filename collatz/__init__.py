@@ -246,7 +246,7 @@ class CollatzMapping:
 		for x in range(p):
 			for y in range(p):
 				for i in range(self.d):
-					G.add_edge((x, y), self(x, i) % p, self(y, i) % p), i)
+					G.add_edge((x, y), (self(x, i) % p, self(y, i) % p), i)
 					
 		return G
 	
