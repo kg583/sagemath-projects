@@ -1,4 +1,4 @@
-def S(a, b, X=set()):
+def S(a, b=1, X=set()):
     seq = [a, b]
     while True:
         try:
@@ -18,19 +18,3 @@ def is_replete(X):
 					return False
 	
 	return True
-          
-def is_valid(X):
-	if is_replete(X):
-		return True
-	
-	for x in X:
-		if is_replete(X - {x}):
-			return True
-		
-	for x in X:
-		for y in X:
-			if y != x and is_replete(X - {x, y}):
-				return True
-			
-	return False
-		
