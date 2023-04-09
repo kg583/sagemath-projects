@@ -1,4 +1,4 @@
-def S(a, b=1, X=set()):
+def S(a, b, X=set()):
     seq = [a, b]
     while True:
         try:
