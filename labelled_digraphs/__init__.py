@@ -42,7 +42,7 @@ class LabelledDiGraph(DiGraph):
 		"""
 		Check whether the graph is vertex transitive with respect to its labels.
 		"""
-		return super().is_vertex_transitive(partition=partition, verbosity=verbosity, edge_labels=True, return_group=return_group, orbits=False)
+		return super().is_vertex_transitive(partition=partition, verbosity=verbosity, edge_labels=True, return_group=return_group, orbits=orbits)
 	
 	def is_walk(self, path, start, end, simple=False):
 		"""
