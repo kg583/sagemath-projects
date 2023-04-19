@@ -290,7 +290,7 @@ class CollatzMapping:
 		
 		If an explicit index is given, it will be used instead of x modulo the degree
 		"""
-		i = i or x % self
+		i = x % self if i is None else i
 		return (self[i][0] * x - self[i][1]) / self.d
 		
 	def __getitem__(self, i):
