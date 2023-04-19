@@ -61,7 +61,7 @@ class LabelledDiGraph(DiGraph):
 		Any of the usual arguments can be passed and will be respected, including additional edge properties.
 		"""
 		return self.subgraph(vertices=vertices, edges=edges, inplace=inplace, vertex_property=vertex_property,
-							 edge_property=lambda e: e[2] == label and edge_property(e),
+							 edge_property=lambda e: e[2] == label and (edge_property or (lambda e: True))(e),
 							 algorithm=algorithm, immutable=immutable)
 		
 	def labelled_incoming_edge_iterator(self, vertex, label):
