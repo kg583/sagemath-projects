@@ -186,6 +186,16 @@ class LabelledDiGraph(DiGraph):
 			return PermutationGroup([*map(S, images.values())])
 		except ValueError:
 			raise ValueError("Graph is not a Cayley graph")
+			
+	def relabel(self, label_map):
+		"""
+		Relabel the graph using a given map between old and new labels
+		"""
+		for edge in self.edges():
+			try:
+				self.set_edge_label(edge[0], edge[1], label_map.get(edge[2], edge[2]))
+			except AttributeError:
+				self.set_edge_label(edge[0], edge[1], label_map[edge[2]])
 		
 	def spanning_tree(self, start):
 		"""
