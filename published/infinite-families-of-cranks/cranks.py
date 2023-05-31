@@ -31,6 +31,8 @@ def B(k, var_zeta=z, var_q=q):
 
 # Creates a map from the power of z to its coefficient in the input polynomial
 # Sage does not have a built-in for this for Laurent polynomials!
+
+# EDIT 5/31/22: There is a more stable version of this function for modern Sage: `dict(zip(poly.exponents(), poly.coefficients()))`
 def laurent_dict(poly):
 	coeffs = str(poly).replace(" - ", " + -").split(" + ")
 	dictionary = {}
@@ -41,6 +43,8 @@ def laurent_dict(poly):
 	
 
 # Determines if a Laurent polynomial is unimodal, assuming it is symmetric
+
+# EDIT 5/31/22: It is worth noting that this function determines if the polynomial is *strictly* unimodal, i.e. has no tails
 def is_unimodal(poly):
 	coeffs = laurent_dict(poly)
 	
