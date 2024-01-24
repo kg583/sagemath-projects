@@ -1,3 +1,5 @@
+from sage.modular.etaproducts import qexp_eta
+
 PREC = 50
 
 LL.<z> = LaurentSeriesRing(QQ, default_prec=PREC)
@@ -17,6 +19,7 @@ def T(n, k, eps=None):
     
     return inner
 
+eta = qexp_eta(MM, PREC)
 delta = delta_qexp(prec=PREC, K=LL)
 j = j_invariant_qexp(prec=PREC, K=LL)
 
