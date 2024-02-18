@@ -28,5 +28,5 @@ def T(n, k, eps=None):
     
     return inner
 
-def J(**kwargs):
-    return (E(4)^2 * E(6) / delta / (j() - z))(**kwargs)
+def G(**kwargs):
+    return (E(4)^2 * E(6) / delta() / (j() - z))(**kwargs)
