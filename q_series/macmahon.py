@@ -23,7 +23,7 @@ def U(*a):
     return sum(M(a, n) * q^n for n in range(1, N))
 
 def Usym(*a):
-    return sum(U(perm) for perm in permutations(a))
+    return sum(U(*perm) for perm in permutations(a))
 
 
 # For generating all quasimodular forms of weight <= k
