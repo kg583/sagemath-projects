@@ -19,10 +19,10 @@ def M(a, n):
 def test(n):
     return (n^2 - 3*n + 2) * M([1], n) - 8 * M([1, 1], n)
 
-def U(a):
+def U(*a):
     return sum(M(a, n) * q^n for n in range(1, N))
 
-def Usym(a):
+def Usym(*a):
     return sum(U(perm) for perm in permutations(a))
 
 
@@ -73,4 +73,6 @@ def find_linear_combo(space, value):
     return denom, sol
 
 
-find_linear_combo(Mtwiddly(12), delta)
+# Bachmann
+def B(*a):
+    return prod(1 / factorial(s - 1) for s in a) * U(*[s - 1 for s in reversed(a)])
