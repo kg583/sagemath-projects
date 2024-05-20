@@ -24,6 +24,9 @@ def rot(ex, i=1):
 def power(ex, x):
     return ex * int(x) if x >= 0 else inv(ex) * -int(x)
 
+def comm(ex, ey):
+    return reduce(ex + ey + inv(ex) + inv(ey))
+
 def fixed(m):
     return list(m)[0][1] / (1 - list(m)[0][0])
 
@@ -33,8 +36,3 @@ def fixer(n, i, c="bABa"):
     s = (n*(1 - a) - b) * 2^p
 
     return reduce("".join(map(power, *zip(*[("B", p - q), (c, r * s), ("B", q - p), ("A", p)] if i else [("B", p - q), (c, r * s), ("B", q)]))))
-
-def comm(n):
-    x, y = fixer(n, 1), fixer(n, 0)
-    *map(print, [x, y]),
-    return reduce(x + y + inv(x) + inv(y))
