@@ -41,13 +41,19 @@ def Mtwiddly(k):
             
             if len(dct) < bound:
                 buckets[len(dct)].append(dct)
+                
+        for l in range(bound):
+            for v in range(1, k - 2*l, 2):
+                a = v, *[1] * l
+                series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
         
-        for l in range(1, bound):
-            for a in product(range(1, k - l + 1, 2), repeat=l):
-                if l + sum(a) <= k:
-                    series[tuple(sorted(a))] += sum(prod(m^i for m, i in zip(reversed(dct.values()), a)) for dct in buckets[l]) * q^n
+        for l in range(bound):
+            for v in range(3, k - 2*l - 4, 2):
+                for w in range(v, k - v - 2*l - 1, 2):
+                    a = w, v, *[1] * l
+                    series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
                  
-    return series
+    return dict(series)
 
 
 # Returns the vector, but also prints it all pretty
