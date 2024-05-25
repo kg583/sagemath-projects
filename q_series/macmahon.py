@@ -25,6 +25,10 @@ def U(*a):
 def Usym(*a):
     return sum(U(*perm) for perm in permutations(a))
 
+# Bachmann's notation
+def B(*a):
+    return prod(1 / factorial(s - 1) for s in a) * U(*[s - 1 for s in reversed(a)])
+
 
 # For generating all quasimodular forms of weight <= k
 # MUCH faster than collecting all the Usym_a's
@@ -55,10 +59,14 @@ def Mtwiddly(k):
                  
     return dict(series)
 
+# Matrix corresponding to a space of forms
+def mat(space, base=QQ):
+    return matrix(base, [series.padded_list(N) for series in space.values()])
+
 
 # Returns the vector, but also prints it all pretty
 def find_linear_combo(space, value):
-    A = matrix(QQ, [series.padded_list(N) for series in space.values()]).transpose()
+    A = mat(space).transpose()
     b = vector(QQ, value.padded_list(N))
     
     sol = A.solve_right(b)
@@ -79,6 +87,37 @@ def find_linear_combo(space, value):
     return denom, sol
 
 
-# Bachmann
-def B(*a):
-    return prod(1 / factorial(s - 1) for s in a) * U(*[s - 1 for s in reversed(a)])
+# Finds a "good basis" without doing completely reduced echelon form
+def find_good_basis(space):
+    m = mat(space)
+    keys = [*space.keys()]
+    
+    row = 0
+    dim = m.nrows()
+    while row < dim:
+        for col in range(row):
+            if m[row][col]:
+                m.add_multiple_of_row(row, col, factor := -m[row][col] / m[col][col])
+                
+        if m[row][row] < 0:
+            m.rescale_row(row, -1)
+            
+        if (d := (m[row][row] / 1).denom()) > 1:
+            m.rescale_row(row, d)
+            
+        if not any(m[row]):
+            keys.pop(row)
+                  
+            for k in range(row, m.nrows() - 1):
+                m.swap_rows(k, k + 1)
+                
+            row -= 1
+            dim -= 1
+            
+        row += 1
+
+    for key, row in zip(keys, m[:dim]):
+        sol = mat(m).transpose().solve_right(row)
+        print(key, sol)
+                
+    return m[:dim]
