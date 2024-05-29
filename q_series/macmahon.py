@@ -117,7 +117,7 @@ def find_good_basis(space):
         row += 1
 
     for key, row in zip(keys, m[:dim]):
-        sol = mat(m).transpose().solve_right(row)
+        sol = m.transpose().solve_right(row)
         print(key, sol)
                 
     return m[:dim]
