@@ -1,7 +1,7 @@
 from collections import defaultdict
 from itertools import permutations, product
 
-N = 40
+N = 36
 Q.<q> = PowerSeriesRing(QQ, default_prec=N)
 
 
@@ -117,7 +117,7 @@ def find_good_basis(space):
         row += 1
 
     for key, row in zip(keys, m[:dim]):
-        sol = m.transpose().solve_right(row)
+        sol = mat(space).transpose().solve_right(row)
         print(key, sol)
                 
     return m[:dim]
