@@ -142,3 +142,6 @@ def stagger(k, rescale=False):
         M = M.augment(find_good_basis(Mtwiddly(k, subspace), rescale=rescale).transpose())
     
     return M.transpose()
+	
+	
+print(find_good_basis(Mtwiddly(16)))
