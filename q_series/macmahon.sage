@@ -42,7 +42,7 @@ def Mtwiddly(k, subspace=0):
     for n in range(1, N):
         buckets = [[] for _ in range(bound)]
         
-        for p in Partitions(n, max_length=bound):
+        for p in Partitions(n):
             dct = p.to_exp_dict()
             
             if len(dct) < bound:
@@ -131,7 +131,7 @@ def find_good_basis(space, rescale=False):
 
     for key, row in zip(keys, m):
         sol = mat(space).transpose().solve_right(row)
-        print(key, sol)
+        print(key)
                 
     return m
 
@@ -144,4 +144,4 @@ def stagger(k, rescale=False):
     return M.transpose()
 	
 	
-print(find_good_basis(Mtwiddly(16)))
+find_good_basis(Mtwiddly(16))
