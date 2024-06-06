@@ -32,10 +32,12 @@ def B(*a):
 
 # For generating all quasimodular forms of weight <= k
 # MUCH faster than collecting all the Usym_a's
-def Mtwiddly(k):
+def Mtwiddly(k, subspace=0):
     bound = k // 2 + 1
     series = defaultdict(Q)
-    series[()] = Q(1)
+    
+    if not subspace:
+        series[()] = Q(1)
     
     for n in range(1, N):
         buckets = [[] for _ in range(bound)]
@@ -49,13 +51,15 @@ def Mtwiddly(k):
         for l in range(bound):
             for v in range(1, k - 2*l, 2):
                 a = v, *[1] * l
-                series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
+                if not subspace or len(a) == subspace:
+                    series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
         
         for l in range(bound):
             for v in range(3, k - 2*l - 4, 2):
                 for w in range(v, k - v - 2*l - 1, 2):
                     a = w, v, *[1] * l
-                    series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
+                    if not subspace or len(a) == subspace:
+                        series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
                  
     return dict(series)
 
@@ -88,36 +92,40 @@ def find_linear_combo(space, value):
 
 
 # Finds a "good basis" without doing completely reduced echelon form
-def find_good_basis(space):
+def find_good_basis(space, rescale=False):
     m = mat(space)
     keys = [*space.keys()]
+    
+    offset = 0
+    while not m.transpose()[offset]:
+        offset += 1
     
     row = 0
     dim = m.nrows()
     while row < dim:
         for col in range(row):
-            if m[row][col]:
-                m.add_multiple_of_row(row, col, factor := -m[row][col] / m[col][col])
+            if m[row][col + offset]:
+                m.add_multiple_of_row(row, col, factor := -m[row][col + offset] / m[col][col + offset])
                 
-        if m[row][row] < 0:
+        if m[row][row + offset] < 0:
             m.rescale_row(row, -1)
             
-        if (d := (m[row][row] / 1).denom()) > 1:
+        if (d := (m[row][row + offset] / 1).denom()) > 1:
             m.rescale_row(row, d)
             
         if not any(m[row]):
             keys.pop(row)
-                  
-            for k in range(row, m.nrows() - 1):
-                m.swap_rows(k, k + 1)
+            m = m.delete_rows([row])
                 
             row -= 1
-            dim -= 1
+            
+        elif rescale and m[row][row + offset] != 1:
+            m.rescale_row(row, 1/gcd(m[row][offset:]))
             
         row += 1
 
-    for key, row in zip(keys, m[:dim]):
+    for key, row in zip(keys, m):
         sol = mat(space).transpose().solve_right(row)
         print(key, sol)
                 
-    return m[:dim]
+    return m
