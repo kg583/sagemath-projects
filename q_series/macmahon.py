@@ -1,7 +1,7 @@
 from collections import defaultdict
 from itertools import permutations, product
 
-N = 36
+N = 41
 Q.<q> = PowerSeriesRing(QQ, default_prec=N)
 
 
@@ -42,24 +42,30 @@ def Mtwiddly(k, subspace=0):
     for n in range(1, N):
         buckets = [[] for _ in range(bound)]
         
-        for p in Partitions(n):
+        for p in Partitions(n, max_length=bound):
             dct = p.to_exp_dict()
             
             if len(dct) < bound:
                 buckets[len(dct)].append(dct)
                 
+        def s(a):
+            if len(b := [*{*a}]) == 1:
+                return sum(prod(m^b[0] for m in dct.values()) for dct in buckets[len(a)])
+            else:
+                return sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a))
+                
         for l in range(bound):
             for v in range(1, k - 2*l, 2):
                 a = v, *[1] * l
                 if not subspace or len(a) == subspace:
-                    series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
+                    series[a[::-1]] += s(a) * q^n
         
         for l in range(bound):
             for v in range(3, k - 2*l - 4, 2):
                 for w in range(v, k - v - 2*l - 1, 2):
                     a = w, v, *[1] * l
                     if not subspace or len(a) == subspace:
-                        series[a[::-1]] += sum(prod(m^i for m, i in zip(reversed(dct.values()), perm)) for dct in buckets[len(a)] for perm in permutations(a)) * q^n
+                        series[a[::-1]] += s(a) * q^n
                  
     return dict(series)
 
@@ -101,8 +107,7 @@ def find_good_basis(space, rescale=False):
         offset += 1
     
     row = 0
-    dim = m.nrows()
-    while row < dim:
+    while row < m.nrows():
         for col in range(row):
             if m[row][col + offset]:
                 m.add_multiple_of_row(row, col, factor := -m[row][col + offset] / m[col][col + offset])
@@ -129,3 +134,11 @@ def find_good_basis(space, rescale=False):
         print(key, sol)
                 
     return m
+
+
+def stagger(k, rescale=False):
+    M = matrix(QQ, [[1], *[[0]] * (N - 1)])
+    for subspace in range(1, k//2 + 1):
+        M = M.augment(find_good_basis(Mtwiddly(k, subspace), rescale=rescale).transpose())
+    
+    return M.transpose()
