@@ -10,25 +10,86 @@ def G(k):
     return eisenstein_series_qexp(k, prec=N)
 
 delta = delta_qexp(prec=N)
+
+
+# Master class for sums of MacMahonesque functions w/ products
+# +: polynomial addition
+# *: (noncommutative) polynomial multiplication
+# @: harmonic product (only defined on sums of letters)
+# %: quasi-shuffle product
+class _U(dict):
+    def __init__(self, dct=None):
+        if isinstance(dct, (tuple, list)):
+            super().__init__({tuple(dct): 1})
+            
+        else:
+            try:
+                int(dct)
+                super().__init__({(): dct})
+            except:
+                super().__init__({k: v for k, v in dict(dct or {}).items() if v})
     
+    def __add__(self, other):
+        other = _U(other)
+        return _U({k: self.get(k, 0) + other.get(k, 0) for k in [*self, *other]})
+    
+    def __radd__(self, other):
+        return _U.__add__(_U(other), self)
+    
+    def __matmul__(self, other):
+        if any(len(k) > 1 for k in [*self, *other]):
+            raise NotImplementedError
+            
+        def c(i, j, m):
+            return factorial(i) * factorial(j) / factorial(i + j + 1) if m == i + j else ((-1)^i * binomial(i, m + 1) + (-1)^j * binomial(j, m + 1)) * bernoulli(i + j - m) / (i + j - m)
+        
+        return sum([self[(i,)] * other[(j,)] * c(i, j, m) * U(m + 1) for i, *_ in self for j, *_ in other for m in range(i + j + 1)], start=_U())
+    
+    def __rmatmul__(self, other):
+        return _U.__matmul__(_U(other), self)
+    
+    def __mod__(self, other):
+        other = _U(other)
+        
+        if [*self.keys()] == [()]:
+            return other * self[()]
+        elif [*other.keys()] == [()]:
+            return self * other[()]
+            
+        return sum([self[(x, *w)] * other[(y, *v)] * ((x,) * (_U(w) % (y, *v)) + (y,) * ((x, *w) % _U(v)) + (U(x) @ U(y)) * (_U(w) % _U(v)))
+                    for x, *w in self for y, *v in other], start=_U())
+    
+    def __rmod__(self, other):
+        return _U.__mod__(_U(other), self)
+    
+    def __mul__(self, other):
+        other = _U(other)
+        return sum([{k + l: v * w} for k, v in self.items() for l, w in other.items()], start=_U())
+    
+    def __rmul__(self, other):
+        return _U.__mul__(_U(other), self)
+    
+    def __neg__(self):
+        return _U({k: -v for k, v in self.items()})
+    
+    def __sub__(self, other):
+        return self + -other
+    
+    def __rsub__(self, other):
+        return _U.__sub__(_U(other), self)
+    
+    def qexp(self):
+        return sum(v * prod(m^i for m, i in zip(reversed(p.to_exp_dict().values()), k)) * q^n
+                   for n in range(1, N) for p in Partitions(n) for k, v in self.items() if len(p.to_exp_dict()) == len(k))
 
-# For playing with individual M_a's and U_a's
-def M(a, n):
-    return sum(prod(m^i for m, i in zip(reversed(p.to_exp_dict().values()), a)) for p in Partitions(n) if len(p.to_exp_dict()) == len(a))
 
-def test(n):
-    return (n^2 - 3*n + 2) * M([1], n) - 8 * M([1, 1], n)
-
+# Use these to actually initialize
 def U(*a):
-    return sum(M(a, n) * q^n for n in range(1, N))
+    return _U(a)
 
 def Usym(*a):
     return sum(U(*perm) for perm in permutations(a))
-
-# Bachmann's notation
-def B(*a):
-    return prod(1 / factorial(s - 1) for s in a) * U(*[s - 1 for s in reversed(a)])
-
+        
 
 # For generating all quasimodular forms of weight <= k
 # MUCH faster than collecting all the Usym_a's
