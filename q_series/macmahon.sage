@@ -6,8 +6,8 @@ Q.<q> = PowerSeriesRing(QQ, default_prec=N)
 
 
 # Modular forms
-def E(k):
-    return eisenstein_series_qexp(k, normalization="constant", prec=N)
+def G(k):
+    return eisenstein_series_qexp(k, prec=N)
 
 delta = delta_qexp(prec=N)
     
