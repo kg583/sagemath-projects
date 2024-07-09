@@ -14,6 +14,9 @@ def G(k):
         
         n = (k - 8) // 2
         return sum(binomial(n - 2, j) * d(j) * d(n - j) for j in range(n + 1)) * (3*n + 6) / (2*n + 9)
+
+def weight(ex):
+    return max(2*i + 4*j + 6*k for i, j, k in ex.exponents())
         
 def qexp(ex):
     return ex.subs(G2=eisenstein_series_qexp(2), G4=eisenstein_series_qexp(4), G6=eisenstein_series_qexp(6))
