@@ -13,7 +13,10 @@ def G(k):
             return G(2*j + 4) * (2*j + 3) * factorial(j)
         
         n = (k - 8) // 2
-        return sum(binomial(n, j) * d(j) * d(n - j) for j in range(n + 1)) * (3*n + 6) / (2*n + 9)
+        g = sum(binomial(n, j) * d(j) * d(n - j) for j in range(n + 1)) * (3*n + 6) / (2*n + 9)
+        
+        # I don't feel like correcting this properly
+        return g / qexp(g)[1]
 
 def weight(ex):
     return max(2*i + 4*j + 6*k for i, j, k in ex.exponents())
@@ -34,7 +37,7 @@ def diff_op(poly, ex):
     
     derivatives = [ex]
     res = 0
-    for i, d in enumerate(list(poly)):
+    for i, d in enumerate(list(P(poly))):
         res += d * derivatives[i]
         derivatives.append(sum(c * deriv(*e) for e, c in zip(derivatives[-1].exponents(), derivatives[-1].coefficients())))
     
