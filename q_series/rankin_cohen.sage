@@ -46,7 +46,7 @@ def R(n):
 
 # The brackets
 
-def rcalg(f, g, nu):
+def rcalg(nu, f=eta, g=eta^-1):
     k, l = weight(f), weight(g)
     return sum((-1)^r * Rational(gamma(k + nu) * gamma(l + nu) / factorial(s := nu - r) / gamma(k + r) / factorial(r) / gamma(l + s)) * D(r, f) * D(s, g) for r in range(nu + 1))
 
@@ -57,13 +57,20 @@ def rcqexp(nu):
                                    for r in range(nu + 1))
                          for n in range(N))
 
-def P(nu, m, n):
-    return sum((-1)^r * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * m^r * (24*n - m)^s for r in range(nu + 1))
+# The formulas
 
-# poly == P(nu, *var("m n"))
-def poly(nu):
-    m, n = var("m n")
-    return (-1)^nu * binomial(2 * nu - 2, nu - 2) * sum(m^(nu - j) * (-6 * n)^j * 2 * nu * (2 * nu - 1) / (2 * nu - j) / (2 * nu - j - 1) * binomial(2 * nu - j, j) for j in range(nu + 1)).expand()
+def P(nu, m, n, conjectured=False):
+    if conjectured:
+        return (-1)^nu * binomial(2 * nu - 2, nu - 2) * sum(m^(nu - j) * (-6 * n)^j * 2 * nu * (2 * nu - 1) / (2 * nu - j) / (2 * nu - j - 1) * binomial(2 * nu - j, j) for j in range(nu + 1))
+    else:
+        return sum((-1)^r * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * m^r * (24*n - m)^s for r in range(nu + 1))
 
 def recur(nu, n):
-    return (sum((-1)^(k-1) * poly(nu).subs(m=(6*k - 1)^2, n=n) * Partitions(n - g(k)).cardinality() for k in R(n) if k != 0) - (-1)^nu * (4*nu / bernoulli(2*nu)) * binomial(2*nu - 2, nu - 2) * sigma(n, 2*nu - 1)) / poly(nu).subs(m=1,n=n)
+    return (sum((-1)^(k-1) * P(nu, (6*k - 1)^2, n) * Partitions(n - g(k)).cardinality() for k in R(n) if k != 0) - (-1)^nu * (4*nu / bernoulli(2*nu)) * binomial(2*nu - 2, nu - 2) * sigma(n, 2*nu - 1)) / P(nu, 1, n)
+
+
+# woah they're the same!!!!!
+nu = 5
+
+print(qexp(rcalg(nu)), rcqexp(nu), sep="\n")
+recur(nu, 17), Partitions(17).cardinality()
