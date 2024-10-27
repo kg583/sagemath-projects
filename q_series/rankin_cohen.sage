@@ -59,6 +59,15 @@ def nat_basis(ex):
     vec = vector(QQ, qexp(ex).padded_list(N))
     
     return {name: value for name, value in zip(gens, mat.solve_right(vec))}
+
+def eigenbasis(ex):
+    k = weight(ex)
+    gens = qexp(E(k)), *Newforms(1, weight=k, names="a", base_ring=QQbar)
+    F = gens[1].hecke_eigenvalue_field()
+    mat = matrix(F, [series.padded_list(N) for series in gens]).transpose()
+    vec = vector(F, qexp(ex).padded_list(N))
+    
+    return [coeff.as_number_field_element()[1] for coeff in mat.solve_right(vec)]
     
 
 def weight(ex):
