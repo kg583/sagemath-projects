@@ -30,6 +30,9 @@ def D(k, ex):
 def Eqexp(k):
     return eisenstein_series_qexp(k, prec=N, normalization="constant")
 
+def qexp(ex):
+    return ex.subs(E2=Eqexp(2), E4=Eqexp(4), E6=Eqexp(6), eta=qexp_eta(Q, prec=N))
+
 def E(k):
     if k == 0:
         return 1
@@ -73,7 +76,7 @@ def eigenbasis(ex):
 def weight(ex):
     return max(sum(a * b for a, b in zip(exponents, (2, 4, 6, 1/2))) for exponents in M(ex).exponents())
 
-def g(k):
+def w(k):
     return k*(3*k - 1) // 2
 
 def R(n):
@@ -82,31 +85,24 @@ def R(n):
 
 # The brackets
 
-def rcalg(nu, f=eta, g=eta^-1):
+def rcalg(nu, f, g):
     k, l = weight(f), weight(g)
     return sum((-1)^r * Rational(gamma(k + nu) * gamma(l + nu) / factorial(s := nu - r) / gamma(k + r) / factorial(r) / gamma(l + s)) * D(r, f) * D(s, g) for r in range(nu + 1))
 
 def rcqexp(nu):
     return 1/24^nu * sum(q^n * sum((-1)^r * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * \
-                                   sum((-1)^k * (6*k - 1)^(2*r) * (24*n - (6*k - 1)^2)^s * Partitions(n - g(k)).cardinality()
-                                       for k in R(n) if g(k) <= n)
+                                   sum((-1)^k * (6*k - 1)^(2*r) * (24*n - (6*k - 1)^2)^s * Partitions(n - w(k)).cardinality()
+                                       for k in R(n))
                                    for r in range(nu + 1))
                          for n in range(N))
+    
+def P(nu):
+    return rcalg(nu, eta, eta^-1)
 
 # The formulas
 
-def P(nu, m, n, conjectured=False):
-    if conjectured:
-        return (-1)^nu * binomial(2 * nu - 2, nu - 2) * sum(m^(nu - j) * (-6 * n)^j * 2 * nu * (2 * nu - 1) / (2 * nu - j) / (2 * nu - j - 1) * binomial(2 * nu - j, j) for j in range(nu + 1))
-    else:
-        return sum((-1)^r * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * m^r * (24*n - m)^s for r in range(nu + 1))
+def g(nu, n, k):
+    return sum((-1)^r * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * (6*k - 1)^(2 * r) * (24*n - (6*k - 1)^2)^s for r in range(nu + 1))
 
 def recur(nu, n):
-    return (sum((-1)^(k-1) * P(nu, (6*k - 1)^2, n) * Partitions(n - g(k)).cardinality() for k in R(n) if k != 0) - (-1)^nu * (4*nu / bernoulli(2*nu)) * binomial(2*nu - 2, nu - 2) * sigma(n, 2*nu - 1)) / P(nu, 1, n)
-
-
-# woah they're the same!!!!!
-nu = 5
-
-print(qexp(rcalg(nu)), rcqexp(nu), sep="\n")
-recur(nu, 17), Partitions(17).cardinality()
+    return (sum((-1)^(k-1) * g(nu, n, k) * Partitions(n - w(k)).cardinality() for k in R(n) if k != 0) - (-1)^nu * (4*nu / bernoulli(2*nu)) * binomial(2*nu - 2, nu - 2) * sigma(n, 2*nu - 1)) / g(nu, n, 0)
