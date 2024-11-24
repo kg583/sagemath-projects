@@ -90,19 +90,19 @@ def rcalg(nu, f, g):
     return sum((-1)^r * Rational(gamma(k + nu) * gamma(l + nu) / factorial(s := nu - r) / gamma(k + r) / factorial(r) / gamma(l + s)) * D(r, f) * D(s, g) for r in range(nu + 1))
 
 def rcqexp(nu):
-    return 1/24^nu * sum(q^n * sum((-1)^r * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * \
+    return 1/24^nu * sum(q^n * sum((-1)^(nu + r) * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * \
                                    sum((-1)^k * (6*k - 1)^(2*r) * (24*n - (6*k - 1)^2)^s * Partitions(n - w(k)).cardinality()
                                        for k in R(n))
                                    for r in range(nu + 1))
                          for n in range(N))
     
 def P(nu):
-    return rcalg(nu, eta, eta^-1)
+    return rcalg(nu, eta^-1, eta)
 
 # The formulas
 
 def g(nu, n, k):
-    return sum((-1)^r * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * (6*k - 1)^(2 * r) * (24*n - (6*k - 1)^2)^s for r in range(nu + 1))
+    return sum((-1)^(nu + r) * Rational(gamma(nu + 1/2) * gamma(nu - 1/2) / factorial(s := nu - r) / gamma(r + 1/2) / factorial(r) / gamma(s - 1/2)) * (6*k - 1)^(2 * r) * (24*n - (6*k - 1)^2)^s for r in range(nu + 1))
 
 def recur(nu, n):
-    return (sum((-1)^(k-1) * g(nu, n, k) * Partitions(n - w(k)).cardinality() for k in R(n) if k != 0) - (-1)^nu * (4*nu / bernoulli(2*nu)) * binomial(2*nu - 2, nu - 2) * sigma(n, 2*nu - 1)) / g(nu, n, 0)
+    return (sum((-1)^(k-1) * g(nu, n, k) * Partitions(n - w(k)).cardinality() for k in R(n) if k != 0) - (4*nu / bernoulli(2*nu)) * binomial(2*nu - 2, nu - 2) * sigma(n, 2*nu - 1)) / g(nu, n, 0)
